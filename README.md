@@ -25,3 +25,6 @@ Boiler plate set up with Gulp as a task runner.
 
 ### To build distribution files:
 * `gulp build`
+
+### To deploy distribution files to Github pages:
+* `gulp deploy-ghp`
