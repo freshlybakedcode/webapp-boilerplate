@@ -58,9 +58,13 @@ gulp.task('clean:dist', () => {														//Delete the dist folder contents
 
 gulp.task('watch', ['browserSync', 'build-css'], () => {
 	gulp.watch('./app/scss/**/*.scss', ['build-css']);
-  gulp.watch('app/*.html', browserSync.reload); 					//Also reloads the browser when HTML or JS changes					
-  gulp.watch('app/js/**/*.js', browserSync.reload); 
+	gulp.watch(['app/js/**/*.js', 'test/**/*.test.js'], ['test']);			//Re-run tests whenever JS or test changes
+  gulp.watch(['app/*.html', 'app/js/**/*.js'], browserSync.reload); 	//Also reloads the browser when HTML or JS changes					
 });
+
+gulp.task('test', 																		//Run tests once
+	shell.task('karma start --single-run --browsers ChromeHeadless karma.conf.js')
+);
 
 gulp.task('build', (callback) => {												//Prep dist
   runSequence('clean:dist', 'build-css',
@@ -72,7 +76,7 @@ gulp.task('deploy-ghp', 																	//Deploy to Github pages
 	shell.task('git subtree push --prefix dist origin gh-pages')
 );
 gulp.task('default', (callback) => {											//Initial dev build then watch
-  runSequence(['build-css','browserSync', 'watch'],
+  runSequence(['build-css','browserSync','watch'],
     callback
   )
 });
