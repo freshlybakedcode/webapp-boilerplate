@@ -12,11 +12,14 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['mocha', 'chai', 'browserify'],
 
 
     // list of files / patterns to load in the browser
-    files: ['test/**/*.test.js'],
+    files: [
+      'app/js/**/*.js',
+      'test/**/*.test.js'
+    ],
 
 
     // list of files / patterns to exclude
@@ -27,13 +30,43 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+      'app/js/**/*.js': ['browserify'],
+      'test/**/*.test.js': ['browserify']
     },
-
+    // Browserify configuration
+    browserify: {
+      debug: true,
+      transform: [
+        [
+          'babelify',
+          {
+            presets: 'es2015'
+          }
+        ], [
+          'browserify-istanbul',
+          {
+            instrumenterConfig: {
+              embedSource: true
+            }
+          }
+        ]
+      ]
+    },
+    // optionally, configure the reporter
+    // text displays it within the console (alternative: text-summary)
+    // lcov creates a codecov compatible report
+    coverageReporter: {
+      reporters: [
+        {'type': 'text'},
+        {'type': 'html', dir: 'coverage'},
+        {'type': 'lcov'}
+      ]
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['mocha'],
+    reporters: ['mocha', 'coverage'],
 
 
     // web server port
