@@ -7,6 +7,7 @@ Boiler plate set up with Gulp as a task runner.
 * Start a server with BrowserSync for hot reloading of HTML/CSS/JS
 * Watch and compile SCSS to CSS
 * Auto-prefix CSS
+* Auto run tests on save (Karma)
 
 <i>Distribution</i>
 * Concatenate all CSS and JS
