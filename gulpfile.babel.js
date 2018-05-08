@@ -3,14 +3,15 @@ import sass from 'gulp-sass';
 import autoprefixer from 'gulp-autoprefixer'
 import browserSync, { create } from 'browser-sync';
 import useref from 'gulp-useref';				//concat files
-import uglify from 'gulp-uglify';				//minify
+import uglify from 'gulp-uglify';				//minify JS
 import gulpIf from 'gulp-if';
 import babel from 'gulp-babel';
-import cleanCSS from 'gulp-clean-css';	//minify
+import cleanCSS from 'gulp-clean-css';	//minify CSS
 import imagemin from 'gulp-imagemin';
 import cache from 'gulp-cache';					//cache unchaged images
 import shell from 'gulp-shell';
 import del from 'del';
+import mocha from 'gulp-mocha';
 import runSequence from 'run-sequence';
 
 gulp.task('build-css', () => {
@@ -33,12 +34,12 @@ gulp.task('browserSync', () => {
 
 gulp.task('useref', () => {
 	return gulp.src('./app/*.html')
-		.pipe(useref())																						//Concat CSS/JS
-		.pipe(gulpIf('*.js', babel({presets: ['es2015']})))				//Transpile JS
-		.pipe(gulpIf('*.js', uglify(															//Minify JS
-			{compress: { drop_console: true }})))									//Strip console.logs			
-		.pipe(gulpIf('*.css', cleanCSS({compatibility: 'ie8'})))	//Minify CSS
-		.pipe(gulp.dest('dist'))																	//Copy CSS/JS
+		.pipe(useref())																						// Concat CSS/JS
+		.pipe(gulpIf('*.js', babel({presets: ['es2015']})))				// Transpile JS
+		.pipe(gulpIf('*.js', uglify(															// Minify JS
+			{compress: { drop_console: true }})))									  // Strip console.logs			
+		.pipe(gulpIf('*.css', cleanCSS({compatibility: 'ie8'})))	// Minify CSS
+		.pipe(gulp.dest('dist'))																	// Copy CSS/JS
 });
 
 gulp.task('images', () =>{
@@ -47,30 +48,43 @@ gulp.task('images', () =>{
   .pipe(gulp.dest('dist/images'))
 });
 
-gulp.task('fonts', () => {																//Copy fonts to dit
+gulp.task('fonts', () => {																// Copy fonts to dist
   return gulp.src('app/fonts/**/*')
   .pipe(gulp.dest('dist/fonts'))
 })
 
-gulp.task('clean:dist', () => {														//Delete the dist folder contents
+gulp.task('clean:dist', () => {														// Delete the dist folder contents
   return del.sync('dist/**');
 })
 
 gulp.task('watch', ['browserSync', 'build-css'], () => {
 	gulp.watch('./app/scss/**/*.scss', ['build-css']);
-  gulp.watch('app/*.html', browserSync.reload); 					//Also reloads the browser when HTML or JS changes					
+	gulp.watch(['app/js/**/*.js', './app/test/**/*.test.js'], ['test']);	// Run tests when JS or test JS is changed
+  gulp.watch('app/*.html', browserSync.reload); 					// Also reloads the browser when HTML or JS changes					
   gulp.watch('app/js/**/*.js', browserSync.reload); 
 });
 
-gulp.task('build', (callback) => {												//Prep dist
+gulp.task('build', (callback) => {												// Prep dist
   runSequence('clean:dist', 'build-css',
     ['useref', 'images', 'fonts'],
     callback
   )
 });
+
+gulp.task('test', () =>																		// Testing
+	gulp.src('./app/test/**/*.test.js', {read: false})
+	.pipe(mocha(
+		{
+			require: 'babel-core/register', 
+			reporter: 'nyan'
+		}
+	))
+);	
+
 gulp.task('deploy-ghp', 																	//Deploy to Github pages
 	shell.task('git subtree push --prefix dist origin gh-pages')
 );
+
 gulp.task('default', (callback) => {											//Initial dev build then watch
   runSequence(['build-css','browserSync', 'watch'],
     callback
